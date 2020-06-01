@@ -17,12 +17,12 @@ A static Big-O analysis tool base on [Big-O Calc](https://github.com/ncu-psl/Big
 ## What kind of code can this tool analyze?
 [Please read this before you use!][wiki]
 
-[wiki]: https://github.com/chunlin-pan/DYSTA/wiki
+[wiki]: https://github.com/ncu-psl/DYSTA/wiki
 
 
 ## How to use
 ```sh
-git clone --recurse-submodules https://github.com/chunlin-pan/DYSTA.git --depth=1
+git clone --recurse-submodules https://github.com/ncu-psl/DYSTA.git --depth=1
 cd DYSTA
 pip3 install -r requirements.txt
 
@@ -32,7 +32,7 @@ python3 bigo_calc.py examples/ForTest.c
 
 
 ## Dependency
-* See [Dependency graph](https://github.com/chunlin-pan/DYSTA/network/dependencies) or [requirements.txt](requirements.txt) in detail.
+* See [Dependency graph](https://github.com/ncu-psl/DYSTA/network/dependencies) or [requirements.txt](requirements.txt) in detail.
 
     * C AST is generated from [pycparser](https://github.com/eliben/pycparser)
 
