@@ -1,5 +1,5 @@
 from pycparser.c_ast import FileAST, FuncDef, FuncCall, For, NodeVisitor, If, ID, Assignment, Constant, BinaryOp, \
-    UnaryOp, Decl, ArrayDecl, ArrayRef, Cast, While, StructRef
+    UnaryOp, Decl, ArrayDecl, ArrayRef, Cast, While, StructRef,  TypeDecl, PtrDecl
 
 from bigo_ast.bigo_ast import WhileNode, BasicNode, VariableNode, ConstantNode, AssignNode, Operator, FuncDeclNode, \
     FuncCallNode, CompilationUnitNode, IfNode, ForNode, WhileNode
@@ -33,7 +33,10 @@ class CTransformVisitor(NodeVisitor):
         if pyc_func_def.decl.type.args:
             param_list = pyc_func_def.decl.type.args.params
             for param in param_list:
-                func_decl_node.parameter.append(param.type.type.names[0] + ' ' + param.name)
+                if type(param.type) == TypeDecl:
+                    func_decl_node.parameter.append(param.type.type.names[0] + ' ' + param.name)
+                elif type(param.type) == PtrDecl:
+                    func_decl_node.parameter.append(param.type.type.type.names[0] + ' ' + param.name)
 
         for child in pyc_func_def.body.block_items:
             self.parent = func_decl_node
