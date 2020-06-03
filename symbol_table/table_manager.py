@@ -120,11 +120,16 @@ class table_manager(object):
             if node.op == '<<':
                 return '(' + self.find_changed_symbol(node.left) + '*2**' + self.find_changed_symbol(node.right) + ')'
             elif node.op == '>>':
-                return '(' + self.find_changed_symbol(node.left)+ '/(2**' + self.find_changed_symbol(node.right) + ')' + ')'
+                return '(' + self.find_changed_symbol(node.left)+ '/(2**' + self.find_changed_symbol(node.right) + '))'
             else:
                 return '(' + self.find_changed_symbol(node.left)+ node.op + self.find_changed_symbol(node.right) + ')'
         if type(node) == ArrayNode:
             return 'array'
+        if type(node) == FuncCallNode:
+            parameter=''
+            for child in node.parameter:
+                parameter += find_changed_symbol(child) + ','
+            return node.name + '(' + parameter[:-1] + ')'
 
     def getUpateRate(name: str,infixString:str)->str:
         return arithmetic.getUpateRate(name, infixString)
