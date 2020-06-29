@@ -3,7 +3,7 @@ import operator
 import sympy
 from sympy.core.mul import Mul
 from bigo_ast.bigo_ast import FuncDeclNode, ForNode, FuncCallNode, CompilationUnitNode, IfNode, VariableNode, \
-    AssignNode, ArrayNode, ConstantNode, Operator, WhileNode, ClassNode
+    AssignNode, ArrayNode, ConstantNode, Operator, WhileNode, ClassNode, ForeachNode
 from bigo_ast.bigo_ast_visitor import BigOAstVisitor
 from symbol_table.table_manager import table_manager
 
@@ -261,6 +261,29 @@ class BigOCalculator(BigOAstVisitor):
         for_node.time_complexity = tc
         pass
     
+    def visit_ForeachNode(self, foreach_node: ForeachNode):
+        self.backward_table_manager.push_table()
+
+        target = self.visit(foreach_node.target)
+        iter = self.visit(foreach_node.iter)
+
+        tc = 0
+        for child in foreach_node.children:
+            self.visit(child)
+            tc += child.time_complexity
+        if tc == 0:
+            tc = 1
+
+        step = self.visit(foreach_node.variable)
+        tc *= step
+        for child in foreach_node.target:
+            tc += child.time_complexity
+        for child in foreach_node.iter:
+            tc += child.time_complexity
+
+        self.backward_table_manager.pop_table()
+        foreach_node.time_complexity = tc
+        pass
 
     def visit_WhileNode(self, while_node: WhileNode):
         self.backward_table_manager.push_table()

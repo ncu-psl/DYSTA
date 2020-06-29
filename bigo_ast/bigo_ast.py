@@ -304,7 +304,7 @@ class ForeachNode(BasicNode):
     def __init__(self):
         super().__init__()
 
-        self.call = ''
+        self.variable = BasicNode()
         self.target = []
         self.iter = []
         pass
@@ -323,7 +323,7 @@ class ForeachNode(BasicNode):
             iter_list.append(child.to_dict())
         d.update({'iter': iter_list})
 
-        d.update({'call': self.call})
+        d.update({'variable': self.variable})
         return d
 
 class WhileNode(BasicNode):
