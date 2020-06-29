@@ -1,9 +1,9 @@
 from ast import Module, FunctionDef, Call, Starred, Assign, AnnAssign, AugAssign,\
-    BinOp, BoolOp, And, Or, Add, Sub, Mult, FloorDiv, Pow, Mod, Div, Num, Name, If, For, While, NodeVisitor, iter_fields, AST, Compare, List, Tuple, ClassDef
+    BinOp, BoolOp, And, Or, Add, Sub, Mult, FloorDiv, Pow, Mod, Div, LShift, RShift, BitOr, BitXor, BitAnd, MatMult, Num, Name, If, For, While, NodeVisitor, iter_fields, AST, Compare, List, Tuple, ClassDef
 import ast
 from ast_transformer.python.print_ast_visitor import print_ast_visitor
 from bigo_ast.bigo_ast import WhileNode, BasicNode, VariableNode, ArrayNode, ConstantNode, AssignNode, Operator, FuncDeclNode, \
-    FuncCallNode, CompilationUnitNode, IfNode, ForNode
+    FuncCallNode, CompilationUnitNode, IfNode, ForNode, ForeachNode
 
 class PyTransformVisitor(NodeVisitor):
     def __init__(self):
@@ -169,7 +169,6 @@ class PyTransformVisitor(NodeVisitor):
 
         return assign_node
     def visit_BoolOp(self, ast_bool_op: BoolOp):
-        operator_node = Operator()
         if type(ast_bool_op.op) == And:
             op = '=='
         elif type(ast_bool_op.op) == Or:
@@ -186,10 +185,10 @@ class PyTransformVisitor(NodeVisitor):
             else:
                 left = self.visit(node)
                 operator_node = Operator()
-                operator.op = op
-                operator.right = right
-                operator.left = left
-                right = operator
+                operator_node.op = op
+                operator_node.right = right
+                operator_node.left = left
+                right = operator_node
 
         operator_node.add_children(operator_node.left)
         operator_node.add_children(operator_node.right)
@@ -309,58 +308,58 @@ class PyTransformVisitor(NodeVisitor):
                         if_node.false_stmt.append(child_node)
         return if_node
 
-    def visit_For(self, ast_for: For):
-        for_node = ForNode()
+    # def visit_For(self, ast_for: For):
+    #     for_node = ForNode()
 
-        #init 做出 i = 0
-        init_variable = VariableNode()
-        init_variable.name = ast_for.target.id
-        init_value = ConstantNode()
-        init_value.value = 0
-        init = AssignNode()
-        init.target = init_variable
-        init.value = init_value
-        # print(init)
-        if type(init) is list:
-            for_node.init.extend(init)
-        else:
-            for_node.init.append(init)
+    #     #init 做出 i = 0
+    #     init_variable = VariableNode()
+    #     init_variable.name = ast_for.target.id
+    #     init_value = ConstantNode()
+    #     init_value.value = 0
+    #     init = AssignNode()
+    #     init.target = init_variable
+    #     init.value = init_value
+    #     # print(init)
+    #     if type(init) is list:
+    #         for_node.init.extend(init)
+    #     else:
+    #         for_node.init.append(init)
 
 
-        #term 做出 i < n
-        term_right = self.for_iter(ast_for.iter)
-        term_left = init_variable
-        term = Operator()
-        term.op = '<'
-        term.left = term_left
-        term.right = term_right
-        for_node.term = term
+    #     #term 做出 i < n
+    #     term_right = self.for_iter(ast_for.iter)
+    #     term_left = init_variable
+    #     term = Operator()
+    #     term.op = '<'
+    #     term.left = term_left
+    #     term.right = term_right
+    #     for_node.term = term
 
-        #update
-        update = AssignNode()
-        #i
-        update_target = VariableNode()
-        update_target.name = ast_for.target.id
-        #i+1
-        update_value = Operator()
-        update_value.left = update_target
-        one = ConstantNode()
-        one.value = 1
-        update_value.right = one
-        update_value.op = '+'
-        #i = i+1
-        update.target = update_target
-        update.value = update_value
-        if type(update) is list:
-            for_node.update.extend(update)
-        else:
-            for_node.update.append(update)
+    #     #update
+    #     update = AssignNode()
+    #     #i
+    #     update_target = VariableNode()
+    #     update_target.name = ast_for.target.id
+    #     #i+1
+    #     update_value = Operator()
+    #     update_value.left = update_target
+    #     one = ConstantNode()
+    #     one.value = 1
+    #     update_value.right = one
+    #     update_value.op = '+'
+    #     #i = i+1
+    #     update.target = update_target
+    #     update.value = update_value
+    #     if type(update) is list:
+    #         for_node.update.extend(update)
+    #     else:
+    #         for_node.update.append(update)
 
-        for child in ast_for.body:
-            child_node = self.visit(child)
-            for_node.add_children(child_node)
+    #     for child in ast_for.body:
+    #         child_node = self.visit(child)
+    #         for_node.add_children(child_node)
 
-        return for_node
+    #     return for_node
     
     def for_iter(self, ast_iter):
         if type(ast_iter) == Call:
@@ -380,9 +379,9 @@ class PyTransformVisitor(NodeVisitor):
             #         terminal.op = '-'
 
             #         if len(ast_iter.args) == 3:
-            #             step = self(visit(ast_name.args[2]))
+            #             step = self(visit(ast_iter.args[2]))
             #             step_operator_node = Operator()
-            #             step_operator_node.left = operator_node
+            #             step_operator_node.left = self(visit(ast_iter.args[1]))
             #             step_operator_node.right = step
             #             step_operator_node.op = '/'
             #             terminal = step_operator_node
@@ -397,13 +396,39 @@ class PyTransformVisitor(NodeVisitor):
             #     return variable_node              
             variable_node = VariableNode()
             variable_node.name = print_ast_visitor().print_node(ast_iter)
-            return variable_node              
+            return variable_node
+            
+        elif type(ast_iter) == ast.Attribute:
+            variable_node = VariableNode()
+            variable_node.name = print_ast_visitor().print_node(ast_iter)
+            return variable_node
+
         else:
             if type(ast_iter) == Name:
                 terminal = self.visit(ast_iter)
                 return terminal
         raise Exception("can't support this iter type : ", type(ast_iter)) 
 
+    def visit_For(self, ast_for):
+        foreach_node = ForeachNode()
+
+        target = self.visit(ast_for.target)
+        if type(target) is list:
+            foreach_node.target.extend(target)
+        else:
+            foreach_node.target.append(target)
+
+        iter = self.visit(ast_for.iter)
+        if type(iter) is list:
+            foreach_node.iter.extend(iter)
+        else:
+            foreach_node.iter.append(iter)
+
+        for child in ast_for.body:
+            child_node = self.visit(child)
+            foreach_node.add_children(child_node)
+
+        return foreach_node
 
     def visit_While(self, ast_while):
         

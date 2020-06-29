@@ -6,7 +6,7 @@ import ast
 class print_ast_visitor(NodeVisitor):
     def __init__(self):
         self.parent = None
-        self.name = '#'
+        self.name = ''
         pass
 
     def print_node(self, root):
@@ -14,6 +14,7 @@ class print_ast_visitor(NodeVisitor):
         return self.name
 
     def visit_Call(self, ast_call: Call):
+        self.name += '#'
         self.visit(ast_call.func)
         self.name += '('
         if ast_call.args:

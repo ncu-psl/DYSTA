@@ -300,6 +300,31 @@ class ForNode(BasicNode):
 
         return d
 
+class ForeachNode(BasicNode):
+    def __init__(self):
+        super().__init__()
+
+        self.call = ''
+        self.target = []
+        self.iter = []
+        pass
+
+    def to_dict(self):
+        d = super().to_dict()
+        
+        target_list = []
+        for child in self.target:
+            target_list.append(child.to_dict())
+
+        d.update({'target': target_list})
+
+        iter_list = []
+        for child in self.iter:
+            iter_list.append(child.to_dict())
+        d.update({'iter': iter_list})
+
+        d.update({'call': self.call})
+        return d
 
 class WhileNode(BasicNode):
     def __init__(self):

@@ -1,5 +1,5 @@
 import ast
 from astpp import parseprint
 
-s = "b = a.pop()"
+s = "for a in k:\n\tpass"
 parseprint('\n'+s)
