@@ -1,4 +1,9 @@
 # Changelog
+## [V1.8](https://github.com/ncu-psl/DYSTA/releases/tag/v1.8)
+[Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.7...v1.8)
+1. 新增可分析 while 敘述功能(測試中)
+2. 新增 examples/WhileTest.py
+
 ## [V1.7](https://github.com/ncu-psl/DYSTA/releases/tag/v1.7)
 [Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.6...v1.7)
 1. 修正 python boolOp 轉換成 big-O AST 時出現的錯誤

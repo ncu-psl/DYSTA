@@ -238,19 +238,12 @@ class PyTransformVisitor(NodeVisitor):
         return operator_node
     def visit_Compare(self, ast_compare: Compare):
         operator_node = Operator()
-        child_operator_node = Operator()
         left = self.visit(ast_compare.left)
-        for index,comparator in enumerate(ast_compare.comparators):
-            if index == 0:
-                child_operator_node.left = left
-                child_operator_node.right = self.visit(comparator)
-                child_operator_node.op = self.transform_op(ast_compare.ops[index])
-            else:
-                parent_operator_node = Operator()
-                parent_operator_node.left = child_operator_node
-                parent_operator_node.right = self.visit(comparator)
-                parent_operator_node.op = self.transform_op(ast_compare.ops[index])
-
+        right = self.visit(ast_compare.comparators[0])
+        op = self.transform_op(ast_compare.ops[0])
+        operator_node.left = left
+        operator_node.right = right
+        operator_node.op = op
         return operator_node
 
     def transform_op(self, compare_op):
@@ -354,8 +347,14 @@ class PyTransformVisitor(NodeVisitor):
         return foreach_node
 
     def visit_While(self, ast_while):
-        
-        pass
+        while_node = WhileNode()        
+        while_node.cond = self.visit(ast_while.test)
+               
+        for child in ast_while.body:
+            child_node = self.visit(child)
+            while_node.add_children(child_node)
+            
+        return while_node
 
     def generic_visit(self, node):
         children = []
