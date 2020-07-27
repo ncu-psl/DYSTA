@@ -1,4 +1,9 @@
 # Changelog
+## [V1.7](https://github.com/ncu-psl/DYSTA/releases/tag/v1.7)
+[Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.6...v1.7)
+1. 修正 python boolOp 轉換成 big-O AST 時出現的錯誤
+2. 新增 examples/WhileTest.c
+
 ## [V1.6](https://github.com/ncu-psl/DYSTA/releases/tag/v1.6)
 [Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.5...v1.6)
 1. 支援 for node 中 target node 可以放入 tuple/list，例如:
