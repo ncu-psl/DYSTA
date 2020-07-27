@@ -48,16 +48,6 @@ class BigOCalculator(BigOAstVisitor):
             self.visit(child)
         self.current_class = None
 
-    def visit_CompilationUnitNode(self, compilation_unit_node: CompilationUnitNode):
-        tc = 0
-        for child in compilation_unit_node.children:
-            self.visit(child)
-            if (type(child) != FuncDeclNode):
-                tc += child.time_complexity
-        if tc == 0:
-            tc = sympy.Rational(1)
-        compilation_unit_node.time_complexity = tc
-
     def visit_FuncDeclNode(self, func_decl_node: FuncDeclNode):
         if func_decl_node.determine_recursion():
             func_decl_node.time_complexity = sympy.Symbol(func_decl_node.name, integer=True, positive=True)
@@ -91,8 +81,10 @@ class BigOCalculator(BigOAstVisitor):
         tc = 0
         for child in array_node.array:
             self.visit(child)
-            tc += child.time_complexity
-        array_node.time_complexity = tc 
+            if hasattr(child, 'time_complexity'):
+                tc += child.time_complexity
+            else:
+                tc += 1
         return array_node.time_complexity
 
     def visit_ConstantNode(self, const_node: ConstantNode):

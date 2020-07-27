@@ -3,7 +3,7 @@ from ast import Module, FunctionDef, Call, Starred, Assign, AnnAssign, AugAssign
 import ast
 from ast_transformer.python.print_ast_visitor import print_ast_visitor
 from bigo_ast.bigo_ast import WhileNode, BasicNode, VariableNode, ArrayNode, ConstantNode, AssignNode, Operator, FuncDeclNode, \
-    FuncCallNode, CompilationUnitNode, IfNode, ForNode, ForeachNode
+    FuncCallNode, CompilationUnitNode, IfNode, ForNode, ForeachNode, ClassNode
 
 class PyTransformVisitor(NodeVisitor):
     def __init__(self):
@@ -31,7 +31,7 @@ class PyTransformVisitor(NodeVisitor):
         #class name
         class_def_node.name = ast_class_def.name
         #class inher
-        for parant in ast_class_def.bases:
+        for parent in ast_class_def.bases:
             class_def_node.inher.append(parent)
         
         for child in ast_class_def.body:
@@ -141,8 +141,8 @@ class PyTransformVisitor(NodeVisitor):
         assign_node = AssignNode()
         # coord = coordinate(ast_ann_assign.col_offset, ast_ann_assign.lineno)
         # self.set_coordinate(assign_node, coord)
-        assign_node.target = self.visit(ast_assign.targets[0])
-        assign_node.value = self.visit(ast_assign.value)
+        assign_node.target = self.visit(ast_ann_assign.targets[0])
+        assign_node.value = self.visit(ast_ann_assign.value)
 
         return assign_node
 
@@ -170,25 +170,30 @@ class PyTransformVisitor(NodeVisitor):
         return assign_node
     def visit_BoolOp(self, ast_bool_op: BoolOp):
         if type(ast_bool_op.op) == And:
-            op = '=='
+            op = '&&'
         elif type(ast_bool_op.op) == Or:
             op = '||'
         else:
             raise Exception("does not support operator: ", ast_bool_op.op)
 
-        right = BasicNode()
-        right_flag = False
-        for node in reversed(ast_bool_op.values):
-            if right_flag == False:
+        operator_node = Operator()
+        operator_node.op = op
+        for i, node in enumerate(ast_bool_op.values):
+            if i == (len(ast_bool_op.values)-1) and i > 1:
                 right = self.visit(node)
-                right_flag == True
-            else:
+                deep_operator_node.right = right
+
+            elif i == 0:
                 left = self.visit(node)
-                operator_node = Operator()
-                operator_node.op = op
-                operator_node.right = right
                 operator_node.left = left
-                right = operator_node
+
+            else: #right
+                left = self.visit(node)
+                deep_operator_node = Operator()
+                deep_operator_node.op = op
+                deep_operator_node.left = left
+                operator_node.right = deep_operator_node
+
 
         operator_node.add_children(operator_node.left)
         operator_node.add_children(operator_node.right)

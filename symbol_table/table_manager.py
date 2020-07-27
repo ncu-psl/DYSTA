@@ -2,7 +2,6 @@
 from bigo_ast.bigo_ast import FuncDeclNode, ForNode, FuncCallNode, CompilationUnitNode, IfNode, VariableNode, \
     AssignNode, ConstantNode, Operator, BasicNode, WhileNode, ArrayNode
 from symbol_table.arithmetic import priority, getUpateRate
-import symbol_table.arithmetic
 class table_manager(object):
     '''
     使用table_list管理程式中所有scope的symbol table
@@ -105,7 +104,7 @@ class table_manager(object):
         if type(node) == AssignNode:
             if type(node.target) == VariableNode:
                 value = self.find_changed_symbol(node.value)
-                rate = getUpateRate(node.target.name, value)
+                rate = self.getUpateRate(node.target.name, value)
                 return node.target.name, value, rate
             else:
                 raise NotImplementedError('type(node.target) != VariableNode\n')
@@ -128,11 +127,11 @@ class table_manager(object):
         if type(node) == FuncCallNode:
             parameter=''
             for child in node.parameter:
-                parameter += find_changed_symbol(child) + ','
+                parameter += self.find_changed_symbol(child) + ','
             return node.name + '(' + parameter[:-1] + ')'
 
-    def getUpateRate(name: str,infixString:str)->str:
-        return arithmetic.getUpateRate(name, infixString)
+    def getUpateRate(self, name: str, infixString:str)->str:
+        return getUpateRate(name, infixString)
 
 class symbol_table(object):
     '''
