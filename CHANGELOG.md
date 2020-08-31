@@ -1,5 +1,5 @@
 # Changelog
-##[1.8.1](https://github.com/ncu-psl/DYSTA/releases/tag/v1.8.1)
+## [1.8.1](https://github.com/ncu-psl/DYSTA/releases/tag/v1.8.1)
 [Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.8...v1.8.1)
 1. 修復 md7.py、md10.py、md17.py的錯誤
 2. requirements.txt 新增「astunparse==1.6.3」
