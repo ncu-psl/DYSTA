@@ -115,6 +115,8 @@ class BigOCalculator(BigOAstVisitor):
         op = node.op
         left = self.visit(node.left)
         right = self.visit(node.right)
+        if op in ['==', '!=', '<', '<=', '>', '=>']:
+            return
         
         if type(left) == sympy.Symbol:
             self.backward_table_manager.current_table.can_replace_varables.append(left.name)

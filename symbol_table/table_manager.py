@@ -41,9 +41,19 @@ class table_manager(object):
             print('table list is empty')
            
     def add_symbol(self,node : BasicNode):
-        symbol_name, value, rate = self.find_changed_symbol(node)
-        sym = Symbol(symbol_name, value, rate)
-        self.table_list[-1].update(sym)
+        if isinstance(node.target, ArrayNode) and isinstance(node.value, ArrayNode):
+            for target, value in zip(node.children[0], node.children[1]):
+                assign_node = AssignNode()
+                assign_node.target = target
+                assign_node.value = value
+
+                symbol_name, value, rate = self.find_changed_symbol(node)
+                sym = Symbol(symbol_name, value, rate)
+                self.table_list[-1].update(sym)
+        else:
+            symbol_name, value, rate = self.find_changed_symbol(node)
+            sym = Symbol(symbol_name, value, rate)
+            self.table_list[-1].update(sym)
         
     def get_symbol_rate(self, symbol_name):
 

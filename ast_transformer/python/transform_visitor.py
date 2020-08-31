@@ -4,6 +4,7 @@ import ast
 from ast_transformer.python.print_ast_visitor import print_ast_visitor
 from bigo_ast.bigo_ast import WhileNode, BasicNode, VariableNode, ArrayNode, ConstantNode, AssignNode, Operator, FuncDeclNode, \
     FuncCallNode, CompilationUnitNode, IfNode, ForNode, ForeachNode, ClassNode
+import astunparse
 
 class PyTransformVisitor(NodeVisitor):
     def __init__(self):
@@ -315,6 +316,12 @@ class PyTransformVisitor(NodeVisitor):
         elif type(ast_iter) == ast.Attribute:
             variable_node = VariableNode()
             variable_node.name = print_ast_visitor().print_node(ast_iter)
+            return variable_node
+
+        elif type(ast_iter) == ast.BinOp:
+            variable_node = VariableNode()
+            #iter_expr = astunparse.unparse(ast_iter).replace("\n", "")
+            variable_node.name = astunparse.unparse(ast_iter).replace("\n", "")
             return variable_node
 
         else:
