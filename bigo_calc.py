@@ -69,7 +69,9 @@ def time_calc(filename : str, file_language : None):
     new_bigo_ast = BigOSimplify(bigo_ast).simplify()
 
     func_bigo_dict = {}
+    func_bigo_dict_SympyOrder = {}
     complexity = new_bigo_ast.time_complexity
+    func_bigo_dict_SympyOrder.update({'compilation node': complexity})
     if type(complexity) is sympy.Order:
             complexity = str(complexity)
     else:
@@ -85,11 +87,14 @@ def time_calc(filename : str, file_language : None):
 
         if func.recursive:
             complexity = 'is a recursive function'
+            func_bigo_dict_SympyOrder.update({func.name: sympy.oo})
         elif not complexity:
             raise ArithmeticError('complexity can not recognize.')
         elif type(complexity) is sympy.Order:
+            func_bigo_dict_SympyOrder.update({func.name: complexity})
             complexity = str(complexity)
         else:
+            func_bigo_dict_SympyOrder.update({func.name: complexity})
             complexity = 'O(' + str(complexity) + ')'
 
         func_bigo_dict.update({func.name: complexity})
@@ -97,7 +102,7 @@ def time_calc(filename : str, file_language : None):
     json_str = json.dumps(func_bigo_dict, indent=4)
 
     # print function Big-O
-    return json_str
+    return json_str, func_bigo_dict_SympyOrder
 
 if __name__ == '__main__':
     main()
