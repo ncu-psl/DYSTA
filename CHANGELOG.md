@@ -1,9 +1,13 @@
 # Changelog
+## [V1.8.2](https://github.com/ncu-psl/DYSTA/releases/tag/v1.8.2)
+[Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.8.1...v1.8.2)
+1. 增加"bigo_calc.py"中"time_calc" function的回傳物。現在多回傳一個Sympy物件。
+
+
 ## [V1.8.1](https://github.com/ncu-psl/DYSTA/releases/tag/v1.8.1)
 [Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.8...v1.8.1)
 1. 修復 md7.py、md10.py、md17.py的錯誤
 2. requirements.txt 新增「astunparse==1.6.3」
-
 
 ## [V1.8](https://github.com/ncu-psl/DYSTA/releases/tag/v1.8)
 [Full Changelog](https://github.com/ncu-psl/DYSTA/compare/ncu-psl:v1.7...v1.8)
