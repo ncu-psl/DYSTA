@@ -1,6 +1,6 @@
 # ![title](https://i.imgur.com/GSGG2ps.png)
 from bigo_ast.bigo_ast import FuncDeclNode, ForNode, FuncCallNode, CompilationUnitNode, IfNode, VariableNode, \
-    AssignNode, ConstantNode, Operator, BasicNode, WhileNode, ArrayNode
+    AssignNode, ConstantNode, Operator, BasicNode, WhileNode, ArrayNode, SubscriptNode
 from symbol_table.arithmetic import priority, getUpateRate
 class table_manager(object):
     '''
@@ -41,15 +41,51 @@ class table_manager(object):
             print('table list is empty')
            
     def add_symbol(self,node : BasicNode):
-        if isinstance(node.target, ArrayNode) and isinstance(node.value, ArrayNode):
-            for target, value in zip(node.children[0], node.children[1]):
-                assign_node = AssignNode()
-                assign_node.target = target
-                assign_node.value = value
+        #print(type(node.target))
+        #if isinstance(node.target, ArrayNode) and isinstance(node.value, ArrayNode):
+        #    for target, value in zip(node.children[0], node.children[1]):
+        #        assign_node = AssignNode()
+        #        assign_node.target = target
+        #        assign_node.value = value
 
-                symbol_name, value, rate = self.find_changed_symbol(node)
-                sym = Symbol(symbol_name, value, rate)
-                self.table_list[-1].update(sym)
+        #        symbol_name, value, rate = self.find_changed_symbol(node)
+        #        sym = Symbol(symbol_name, value, rate)
+        #        self.table_list[-1].update(sym)
+        if isinstance(node.target, ArrayNode):
+            if isinstance(node.value, ArrayNode):
+                for target, value in zip(node.children[0], node.children[1]):
+                    assign_node = AssignNode()
+                    assign_node.target = target
+                    assign_node.value = value
+
+                    symbol_name, value, rate = self.find_changed_symbol(assign_node)
+                    sym = Symbol(symbol_name, value, rate)
+                    self.table_list[-1].update(sym)
+
+            else:
+                for target in node.children[0]:
+                    assign_node = AssignNode()
+                    assign_node.target = target
+                    assign_node.value = node.children[1]
+
+                    symbol_name, value, rate = self.find_changed_symbol(assign_node)
+                    sym = Symbol(symbol_name, value, rate)
+                    self.table_list[-1].update(sym)
+
+
+        #if isinstance(node.target, list):
+        #    if isinstance(node.value, list):
+        #        pass
+        #    else:
+        #        for target in node.target:
+        #            assign_node = AssignNode()
+        #            assign_node.target = target
+        #            assign_node.value = node.value
+
+        #            symbol_name, value, rate = self.find_changed_symbol(assign_node)
+        #            sym = Symbol(symbol_name, value, rate)
+        #            self.table_list[-1].update(sym)
+
         else:
             symbol_name, value, rate = self.find_changed_symbol(node)
             sym = Symbol(symbol_name, value, rate)
@@ -113,12 +149,47 @@ class table_manager(object):
         #不能處理 m = n++ 這類的 expression
         if type(node) == AssignNode:
             if type(node.target) == VariableNode:
-                value = self.find_changed_symbol(node.value)
+                if isinstance(node.value, SubscriptNode):
+                    value = self.find_changed_symbol(node.value.value)
+                else:
+                    value = self.find_changed_symbol(node.value)
                 rate = self.getUpateRate(node.target.name, value)
                 return node.target.name, value, rate
+
+            elif type(node.target) == SubscriptNode:
+                if isinstance(node.value, SubscriptNode):
+                    value = self.find_changed_symbol(node.value.value)
+                else:
+                    value = self.find_changed_symbol(node.value)
+                value = self.find_changed_symbol(node.value)
+                if isinstance(node.target.value, list):
+                    rate = self.getUpateRate(node.target.value[0].name, value)
+                    return node.target.value[0].name, value, rate
+                else:
+                    rate = self.getUpateRate(node.target.value.name, value)
+                    return node.target.value.name, value, rate
+            elif type(node.target) == list:
+                if type(node.target[0]) == VariableNode:
+                    if isinstance(node.value, SubscriptNode):
+                        value = self.find_changed_symbol(node.value.value)
+                    else:
+                        value = self.find_changed_symbol(node.value)
+                    rate = self.getUpateRate(node.target[0].name, value)
+                    return node.target[0].name, value, rate
+
+                elif type(node.target[0]) == SubscriptNode:
+                    if isinstance(node.value, SubscriptNode):
+                        value = self.find_changed_symbol(node.value.value)
+                    else:
+                        value = self.find_changed_symbol(node.value)
+                    value = self.find_changed_symbol(node.value)
+                    rate = self.getUpateRate(node.target[0].value.name, value)
+                    return node.target[0].value.name, value, rate
+                else:
+                    raise NotImplementedError('type(node.target) != VariableNode\n')
             else:
                 raise NotImplementedError('type(node.target) != VariableNode\n')
- 
+
         if type(node) == VariableNode:
             return str(node.name)
         
@@ -139,9 +210,14 @@ class table_manager(object):
             for child in node.parameter:
                 parameter += self.find_changed_symbol(child) + ','
             return node.name + '(' + parameter[:-1] + ')'
+        if type(node) == SubscriptNode:
+            if type(node.value) == VariableNode:
+                return str(node.value.name)
+            return str(node.value)
 
     def getUpateRate(self, name: str, infixString:str)->str:
         return getUpateRate(name, infixString)
+
 
 class symbol_table(object):
     '''

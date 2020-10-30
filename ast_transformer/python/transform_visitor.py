@@ -3,7 +3,7 @@ from ast import Module, FunctionDef, Call, Starred, Assign, AnnAssign, AugAssign
 import ast
 from ast_transformer.python.print_ast_visitor import print_ast_visitor
 from bigo_ast.bigo_ast import WhileNode, BasicNode, VariableNode, ArrayNode, ConstantNode, AssignNode, Operator, FuncDeclNode, \
-    FuncCallNode, CompilationUnitNode, IfNode, ForNode, ForeachNode, ClassNode
+    FuncCallNode, CompilationUnitNode, IfNode, ForNode, ForeachNode, ClassNode, SubscriptNode
 import astunparse
 
 class PyTransformVisitor(NodeVisitor):
@@ -324,11 +324,26 @@ class PyTransformVisitor(NodeVisitor):
             variable_node.name = astunparse.unparse(ast_iter).replace("\n", "")
             return variable_node
 
+        elif type(ast_iter) == ast.List:
+            variable_node = VariableNode()
+            variable_node.name = astunparse.unparse(ast_iter).replace("\n", "")
+            return variable_node
+
+        elif type(ast_iter) == ast.Tuple:
+            variable_node = VariableNode()
+            variable_node.name = astunparse.unparse(ast_iter).replace("\n", "")
+            return variable_node
+
+        elif type(ast_iter) == ast.Subscript:
+            variable_node = VariableNode()
+            variable_node.name = astunparse.unparse(ast_iter.value).replace("\n", "")
+            return variable_node
+
         else:
             if type(ast_iter) == Name:
                 terminal = self.visit(ast_iter)
                 return terminal
-        raise Exception("can't support this iter type : ", type(ast_iter)) 
+        raise Exception("can't support this iter type : ", type(ast_iter), astunparse.unparse(ast_iter)) 
 
     def visit_For(self, ast_for):
         foreach_node = ForeachNode()
@@ -362,6 +377,13 @@ class PyTransformVisitor(NodeVisitor):
             while_node.add_children(child_node)
             
         return while_node
+
+    def visit_Subscript(self, ast_subscript: ast.Subscript):
+        subscript_node = SubscriptNode()
+        subscript_node.value = self.visit(ast_subscript.value)
+        subscript_node.slice = self.visit(ast_subscript.slice)
+
+        return subscript_node
 
     def generic_visit(self, node):
         children = []

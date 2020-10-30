@@ -3,7 +3,7 @@ import operator
 import sympy
 from sympy.core.mul import Mul
 from bigo_ast.bigo_ast import FuncDeclNode, ForNode, FuncCallNode, CompilationUnitNode, IfNode, VariableNode, \
-    AssignNode, ArrayNode, ConstantNode, Operator, WhileNode, ClassNode, ForeachNode
+    AssignNode, ArrayNode, ConstantNode, Operator, WhileNode, ClassNode, ForeachNode, SubscriptNode
 from bigo_ast.bigo_ast_visitor import BigOAstVisitor
 from symbol_table.table_manager import table_manager
 
@@ -333,3 +333,12 @@ class BigOCalculator(BigOAstVisitor):
         while_node.time_complexity = step * tc
 
         pass
+
+    def visit_SubscriptNode(self, subscript: SubscriptNode):
+        if type(subscript.value) == list:
+            if type(subscript.value[0]) == SubscriptNode:
+                return sympy.Symbol(subscript.value[0].value.name, integer=True, positive=True)
+            else:
+                return sympy.Symbol(subscript.value[0].name, integer=True, positive=True)
+        else:
+            return sympy.Symbol(subscript.value.name, integer=True, positive=True)
