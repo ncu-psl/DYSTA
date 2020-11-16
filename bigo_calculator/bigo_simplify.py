@@ -57,6 +57,7 @@ class BigOSimplify(BigOAstVisitor):
         # simplify time complexity
         node.time_complexity = node.time_complexity.expand()
         if var_list:
+            sympy.O(node.time_complexity, *var_list).args[0]
             try:
                 node.time_complexity = sympy.O(node.time_complexity, *var_list).args[0]
             except:

@@ -104,6 +104,24 @@ class PyTransformVisitor(NodeVisitor):
 
         return variable_node
 
+    def visit_Str(self, ast_str: ast.Str):
+        variable_node = VariableNode()
+        variable_node.name = ast_str.s
+
+        return variable_node
+
+    def visit_JoinedStr(self, ast_joinedstr: ast.JoinedStr):
+        variable_node = VariableNode()
+        variable_node.name = astunparse.unparse(ast_joinedstr).replace("\n", "")
+        
+        return variable_node
+
+    def visit_ListComp(self, ast_listcomp: ast.ListComp):
+        variable_node = VariableNode()
+        variable_node.name = astunparse.unparse(ast_listcomp).replace("\n", "")
+        
+        return variable_node
+
     def visit_List(self, ast_list: List):
         array_node = ArrayNode()
         for elt in ast_list.elts:
@@ -113,6 +131,12 @@ class PyTransformVisitor(NodeVisitor):
     def visit_Tuple(self, ast_tuple: Tuple):
         array_node = ArrayNode()
         for elt in ast_tuple.elts:
+            array_node.array.append(self.visit(elt))
+        return array_node
+
+    def visit_Set(self, ast_set: ast.Set):
+        array_node = ArrayNode()
+        for elt in ast_set.elts:
             array_node.array.append(self.visit(elt))
         return array_node
 
@@ -156,6 +180,8 @@ class PyTransformVisitor(NodeVisitor):
         elif type(ast_aug_assign.op) == Mult:
             new_op = BinOp(ast_aug_assign.target, Mult(), ast_aug_assign.value)
         elif type(ast_aug_assign.op) == Div:
+            new_op = BinOp(ast_aug_assign.target, Div(), ast_aug_assign.value)
+        elif type(ast_aug_assign.op) == FloorDiv:
             new_op = BinOp(ast_aug_assign.target, Div(), ast_aug_assign.value)
         else:
             raise Exception("does not support operator: ", ast_aug_assign.op)
@@ -213,7 +239,8 @@ class PyTransformVisitor(NodeVisitor):
         elif type(ast_bin_op.op) == Div:
             operator_node.op = '/'
         elif type(ast_bin_op.op) == FloorDiv:
-            operator_node.op = '//'
+            #operator_node.op = '//'
+            operator_node.op = '/'
         elif type(ast_bin_op.op) == Mod:
             operator_node.op = '%'
         elif type(ast_bin_op.op) == Pow:
@@ -228,6 +255,8 @@ class PyTransformVisitor(NodeVisitor):
             operator_node.op = '&'
         elif type(ast_bin_op.op) == MatMult:
             operator_node.op = '@'
+        elif type(ast_bin_op.op) == ast.BitXor:
+            operator_node.op = '^'
         else:
             raise Exception("does not support operator: ", ast_bin_op.op)
         operator_node.left = self.visit(ast_bin_op.left)
@@ -237,6 +266,10 @@ class PyTransformVisitor(NodeVisitor):
         operator_node.add_children(operator_node.right)
 
         return operator_node
+
+    def visit_UnaryOp(self, ast_unaryop: ast.UnaryOp):
+        return self.visit(ast_unaryop.operand)
+
     def visit_Compare(self, ast_compare: Compare):
         operator_node = Operator()
         left = self.visit(ast_compare.left)
@@ -306,6 +339,42 @@ class PyTransformVisitor(NodeVisitor):
                     else:
                         if_node.false_stmt.append(child_node)
         return if_node
+
+    def visit_IfExp(self, ast_ifexp: ast.IfExp):
+        if_node = IfNode()
+        #
+        #
+        #
+        if_node.condition = self.visit(ast_ifexp.test)
+
+        #
+        if type(ast_ifexp.body) is not list:
+            ast_ifexp.body = [ast_ifexp.body]
+
+        self.parent = if_node.true_stmt
+        for child in ast_ifexp.body or []:
+            child_node = self.visit(child)
+            if child_node:
+                if type(child_node) is list:
+                    if_node.true_stmt.extend(child_node)
+                else:
+                    if_node.true_stmt.append(child_node)
+
+        #
+        if ast_ifexp.orelse:
+            if type(ast_ifexp.orelse) is not list:
+                ast_ifexp.orelse = [ast_ifexp.orelse]
+
+            self.parent = if_node.false_stmt
+            for child in ast_ifexp.orelse or []:
+                child_node = self.visit(child)
+                if child_node:
+                    if type(child_node) is list:
+                        if_node.false_stmt.extend(child_node)
+                    else:
+                        if_node.false_stmt.append(child_node)
+        return if_node
+
     
     def for_iter(self, ast_iter):
         if type(ast_iter) == Call:
@@ -326,7 +395,8 @@ class PyTransformVisitor(NodeVisitor):
 
         elif type(ast_iter) == ast.List:
             variable_node = VariableNode()
-            variable_node.name = astunparse.unparse(ast_iter).replace("\n", "")
+            #variable_node.name = astunparse.unparse(ast_iter).replace("\n", "")
+            variable_node.name = len(ast_iter.elts)
             return variable_node
 
         elif type(ast_iter) == ast.Tuple:
@@ -379,11 +449,28 @@ class PyTransformVisitor(NodeVisitor):
         return while_node
 
     def visit_Subscript(self, ast_subscript: ast.Subscript):
-        subscript_node = SubscriptNode()
-        subscript_node.value = self.visit(ast_subscript.value)
-        subscript_node.slice = self.visit(ast_subscript.slice)
+        #variable_node = VariableNode()
+        # coord = coordinate(ast_name.col_offset, ast_name.lineno)
+        # self.set_coordinate(variable_node, coord)
+        #variable_node.name = self.visit(ast_subscript.value)
 
-        return subscript_node
+        return self.visit(ast_subscript.value)
+
+        #subscript_node = SubscriptNode()
+        #subscript_node.value = self.visit(ast_subscript.value)
+        #subscript_node.slice = self.visit(ast_subscript.slice)
+
+        #return subscript_node
+
+
+    def visit_NameConstant(self, ast_nameConstant: ast.NameConstant):
+        constant_node = ConstantNode()
+        if ast_nameConstant.value != None:
+            constant_node.value = ast_nameConstant.value
+        else:
+            constant_node.value = 0
+
+        return constant_node
 
     def generic_visit(self, node):
         children = []

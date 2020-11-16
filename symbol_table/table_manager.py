@@ -197,12 +197,18 @@ class table_manager(object):
             return str(node.value)
         
         if type(node) == Operator:
+            node_left = self.find_changed_symbol(node.left)
+            if node_left == None:
+                node_left = '0'
+            node_right = self.find_changed_symbol(node.right)
+            if node_right == None:
+                node_right = '0'
             if node.op == '<<':
-                return '(' + self.find_changed_symbol(node.left) + '*2**' + self.find_changed_symbol(node.right) + ')'
+                return '(' + node_left + '*2**' + node_right+ ')'
             elif node.op == '>>':
-                return '(' + self.find_changed_symbol(node.left)+ '/(2**' + self.find_changed_symbol(node.right) + '))'
+                return '(' + node_left + '/(2**' + node_right + '))'
             else:
-                return '(' + self.find_changed_symbol(node.left)+ node.op + self.find_changed_symbol(node.right) + ')'
+                return '(' + node_left + node.op + node_right + ')'
         if type(node) == ArrayNode:
             return 'array'
         if type(node) == FuncCallNode:
