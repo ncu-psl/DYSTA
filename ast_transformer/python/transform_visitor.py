@@ -104,6 +104,12 @@ class PyTransformVisitor(NodeVisitor):
 
         return variable_node
 
+    def visit_Attribute(self, ast_attr: ast.Attribute):
+        variable_node = VariableNode()
+        variable_node.name = ast_attr.attr
+
+        return variable_node
+
     def visit_Str(self, ast_str: ast.Str):
         variable_node = VariableNode()
         variable_node.name = ast_str.s
